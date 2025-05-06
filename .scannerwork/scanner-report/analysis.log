@@ -18,7 +18,7 @@ Project scanner properties:
   - sonar.scanner.app=ScannerNpm
   - sonar.scanner.appVersion=4.3.0
   - sonar.scanner.arch=x64
-  - sonar.scanner.bootstrapStartTime=1746496896655
+  - sonar.scanner.bootstrapStartTime=1746497081503
   - sonar.scanner.internal.isSonarCloud=true
   - sonar.scanner.os=win32
   - sonar.scanner.wasEngineCacheHit=true

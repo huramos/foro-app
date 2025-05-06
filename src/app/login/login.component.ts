@@ -1,9 +1,9 @@
-import { Component } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import * as crypto from 'crypto-js';
 import { ReactiveFormsModule } from '@angular/forms';
+import * as crypto from 'crypto-js';
 
 @Component({
   selector: 'app-login',
@@ -12,7 +12,7 @@ import { ReactiveFormsModule } from '@angular/forms';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   loginForm: FormGroup;
   registeredUsers: any[] = [];
 
@@ -35,22 +35,21 @@ export class LoginComponent {
     return [];
   }
 
-  onSubmit() {
-    const user = this.registeredUsers.find(u => u.username === this.loginForm.value.username);
-
+  onSubmit(): void {
+    const user = this.registeredUsers.find((u: any) => u.username === this.loginForm.value.username);
     if (user && crypto.SHA256(this.loginForm.value.password).toString() === crypto.SHA256(user.password).toString()) {
-      alert('¡Inicio de sesión exitoso!');
+      alert('Inicio de sesión exitoso!');
       this.router.navigate(['/home']);
     } else {
       alert('Usuario o contraseña incorrectos.');
     }
   }
 
-  onRegister() {
+  onRegister(): void {
     this.router.navigate(['/register']);
   }
 
-  onForgotPassword() {
+  onForgotPassword(): void {
     this.router.navigate(['/password-reset']);
   }
 }

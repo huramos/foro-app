@@ -17,6 +17,8 @@ export class HomeComponent implements OnInit {
   isEditing: boolean = false;
 
   constructor(private fb: FormBuilder, private router: Router) {
+    // Inicialmente, se crean los controles. username se queda deshabilitado siempre; 
+    // email y gender se deshabilitan hasta que se active el modo edición.
     this.profileForm = this.fb.group({
       username: [{ value: '', disabled: true }, Validators.required],
       email: [{ value: '', disabled: true }, Validators.required],
@@ -36,6 +38,9 @@ export class HomeComponent implements OnInit {
         gender: this.userData.gender
       });
     }
+    // Aseguramos que los controles de email y gender se mantengan deshabilitados
+    this.profileForm.get('email')?.disable();
+    this.profileForm.get('gender')?.disable();
   }
 
   toggleEdit(): void {
@@ -52,20 +57,23 @@ export class HomeComponent implements OnInit {
   saveChanges(): void {
     if (this.profileForm.valid && this.userData) {
       const updatedProfile = this.profileForm.value;
+      // Nota: dado que algunos controles pueden estar deshabilitados,
+      // su valor no se incluye en form.value, por ello, para username usamos el valor existente.
       this.userData = { ...this.userData, ...updatedProfile };
 
       const storedUsers = localStorage.getItem('registeredUsers');
       const users = storedUsers ? JSON.parse(storedUsers) : [];
       users[users.length - 1] = this.userData;
-      localStorage.setItem('registeredUsers', JSON.stringify(users));
 
+      localStorage.setItem('registeredUsers', JSON.stringify(users));
       this.isEditing = false;
       alert('¡Cambios guardados!');
+    } else {
+      console.warn('Formulario inválido, no se guardaron cambios.');
     }
   }
 
   logout(): void {
-    console.log('Saliendo del perfil...');
     this.router.navigate(['/login']);
   }
 }
