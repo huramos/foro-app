@@ -1,0 +1,30 @@
+SonarCloud plugins:
+  - Text Code Quality and Security 2.22.0.5855 (textenterprise)
+  - JaCoCo 1.3.0.1538 (jacoco)
+  - IaC Code Quality and Security 1.46.0.15097 (iacenterprise)
+  - IaC Code Quality and Security 1.46.0.15097 (iac)
+Project server settings:
+Project scanner properties:
+  - sonar.exclusions=**/*.spec.ts,**/node_modules/**
+  - sonar.host.url=https://sonarcloud.io
+  - sonar.javascript.lcov.reportPaths=coverage/lcov.info
+  - sonar.language=ts
+  - sonar.organization=huramos
+  - sonar.projectBaseDir=C:\Users\hugoa\OneDrive\Escritorio\Clases Duoc\7 BIMESTRE\FullStack III\SEGUNDA PRUEBA\foro-app
+  - sonar.projectKey=foro-app
+  - sonar.projectName=foro app
+  - sonar.projectVersion=1.0
+  - sonar.scanner.apiBaseUrl=https://api.sonarcloud.io
+  - sonar.scanner.app=ScannerNpm
+  - sonar.scanner.appVersion=4.3.0
+  - sonar.scanner.arch=x64
+  - sonar.scanner.bootstrapStartTime=1746496896655
+  - sonar.scanner.internal.isSonarCloud=true
+  - sonar.scanner.os=win32
+  - sonar.scanner.wasEngineCacheHit=true
+  - sonar.scanner.wasJreCacheHit=hit
+  - sonar.sourceEncoding=UTF-8
+  - sonar.sources=src
+  - sonar.token=******
+  - sonar.userHome=C:\Users\hugoa\.sonar
+  - sonar.working.directory=.scannerwork
