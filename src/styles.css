@@ -1,1 +1,7 @@
-/* You can add global styles to this file, and also import other style files */
+.imagen-derecha {
+    position: fixed; /* Se mantiene fija en la pantalla */
+    top: 0;        /* Sitúa la imagen en la parte superior */
+    right: 0;      /* Sitúa la imagen en el extremo derecho */
+    width: 200px;  /* Ajusta el ancho según lo necesites */
+    z-index: 1000; /* Asegura que la imagen esté por encima de otros elementos */
+}
