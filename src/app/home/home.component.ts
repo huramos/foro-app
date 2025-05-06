@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 
@@ -12,58 +12,60 @@ import { ReactiveFormsModule } from '@angular/forms';
   styleUrls: ['./home.component.css']
 })
 export class HomeComponent implements OnInit {
-  userProfile: any; // Datos del usuario
+  userData: any = {};
   profileForm: FormGroup;
-  isEditing: boolean = false; // Estado para habilitar/deshabilitar edición
+  isEditing: boolean = false;
 
   constructor(private fb: FormBuilder, private router: Router) {
     this.profileForm = this.fb.group({
-      username: [''],
-      email: [''],
-      gender: ['']
+      username: [{ value: '', disabled: true }, Validators.required],
+      email: [{ value: '', disabled: true }, Validators.required],
+      gender: [{ value: '', disabled: true }, Validators.required]
     });
   }
 
   ngOnInit(): void {
     const storedUsers = localStorage.getItem('registeredUsers');
-    if (storedUsers) {
-      const users = JSON.parse(storedUsers);
-      this.userProfile = users[users.length - 1]; // Último usuario registrado
-    }
+    const users = storedUsers ? JSON.parse(storedUsers) : [];
 
-    if (this.userProfile) {
+    if (users.length > 0) {
+      this.userData = users[users.length - 1];
       this.profileForm.patchValue({
-        username: this.userProfile.username,
-        email: this.userProfile.email,
-        gender: this.userProfile.gender
+        username: this.userData.username,
+        email: this.userData.email,
+        gender: this.userData.gender
       });
     }
   }
 
-  enableEditing(): void {
-    this.isEditing = true; // Habilitar edición
+  toggleEdit(): void {
+    this.isEditing = !this.isEditing;
+    if (this.isEditing) {
+      this.profileForm.get('email')?.enable();
+      this.profileForm.get('gender')?.enable();
+    } else {
+      this.profileForm.get('email')?.disable();
+      this.profileForm.get('gender')?.disable();
+    }
   }
 
   saveChanges(): void {
-    if (this.profileForm.valid) {
+    if (this.profileForm.valid && this.userData) {
       const updatedProfile = this.profileForm.value;
-      this.userProfile = { ...this.userProfile, ...updatedProfile }; // Actualizar datos del usuario
+      this.userData = { ...this.userData, ...updatedProfile };
 
-      // Actualizar almacenamiento local (opcional, si guardas los cambios persistentes)
       const storedUsers = localStorage.getItem('registeredUsers');
-      if (storedUsers) {
-        const users = JSON.parse(storedUsers);
-        users[users.length - 1] = this.userProfile; // Actualizar el último usuario
-        localStorage.setItem('registeredUsers', JSON.stringify(users));
-      }
+      const users = storedUsers ? JSON.parse(storedUsers) : [];
+      users[users.length - 1] = this.userData;
+      localStorage.setItem('registeredUsers', JSON.stringify(users));
 
-      this.isEditing = false; // Deshabilitar edición
+      this.isEditing = false;
       alert('¡Cambios guardados!');
     }
   }
 
-  onLogout(): void {
+  logout(): void {
     console.log('Saliendo del perfil...');
-    this.router.navigate(['/login']); // Redirigir al Login
+    this.router.navigate(['/login']);
   }
 }

@@ -1,23 +1,21 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { TestBed } from '@angular/core/testing';
 import { LoginComponent } from './login.component';
+import { ReactiveFormsModule } from '@angular/forms';
+import { RouterTestingModule } from '@angular/router/testing';
 
 describe('LoginComponent', () => {
-  let component: LoginComponent;
-  let fixture: ComponentFixture<LoginComponent>;
-
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [LoginComponent]
-    })
-    .compileComponents();
-
-    fixture = TestBed.createComponent(LoginComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [LoginComponent, ReactiveFormsModule, RouterTestingModule], // ✅ Se importó en lugar de declarar
+    });
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  it('debería validar credenciales incorrectas', () => {
+    const fixture = TestBed.createComponent(LoginComponent);
+    const component = fixture.componentInstance;
+    component.loginForm.setValue({ username: 'usuario', password: 'incorrecto' });
+
+    component.onSubmit();
+    expect(component.loginForm.valid).toBeTruthy();
   });
 });

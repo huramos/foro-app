@@ -1,7 +1,8 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule } from '@angular/forms';
 
 interface User {
   username: string;
@@ -13,64 +14,61 @@ interface User {
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.css']
 })
 export class RegisterComponent {
-  username: string = '';
-  email: string = '';
-  password: string = '';
-  gender: string = '';
-  registeredUsers: User[] = [];
+  registerForm: FormGroup;
+  registrationMessage: string = '';
 
-  constructor(private router: Router) {
-    const storedUsers = localStorage.getItem('registeredUsers');
-    this.registeredUsers = storedUsers ? JSON.parse(storedUsers) : [];
+  constructor(private fb: FormBuilder, private router: Router) {
+    this.registerForm = this.fb.group({
+      username: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [
+        Validators.required,
+        Validators.minLength(8),
+        Validators.pattern(/(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])/)
+      ]],
+      gender: ['', Validators.required]
+    });
   }
 
-  onRegisterSubmit() {
-    if (!this.username) {
-      alert('El usuario es obligatorio.');
-      return;
-    }
-
-    if (!this.validateEmail(this.email)) {
-      alert('Por favor, ingresa un correo electrónico válido.');
-      return;
-    }
-
-    if (!this.validatePassword(this.password)) {
-      alert('La contraseña no cumple con los requisitos de seguridad.');
+  onSubmit() {
+    if (this.registerForm.invalid) {
+      this.registerForm.markAllAsTouched();
       return;
     }
 
     const newUser: User = {
-      username: this.username,
-      email: this.email,
-      password: this.password,
-      gender: this.gender
+      username: this.registerForm.value.username,
+      email: this.registerForm.value.email,
+      password: this.registerForm.value.password, // ✅ Se guarda sin cifrar para recuperación
+      gender: this.registerForm.value.gender
     };
 
-    this.registeredUsers.push(newUser);
-    localStorage.setItem('registeredUsers', JSON.stringify(this.registeredUsers));
+    this.storeUser(newUser);
+    this.registrationMessage = '¡Registro exitoso! Redirigiendo a login...';
 
-    alert('¡Registro exitoso!');
+    setTimeout(() => this.router.navigate(['/login']), 2000);
+  }
+
+  private storeUser(user: User) {
+    const storedUsers = localStorage.getItem('registeredUsers');
+    const users: User[] = storedUsers ? JSON.parse(storedUsers) : [];
+
+    const existingUser = users.find(u => u.username === user.username);
+    if (existingUser) {
+      alert('El usuario ya está registrado. Prueba con otro nombre.');
+      return;
+    }
+
+    users.push(user);
+    localStorage.setItem('registeredUsers', JSON.stringify(users));
+  }
+
+  onLogin() {
     this.router.navigate(['/login']);
-  }
-
-  validateEmail(email: string): boolean {
-    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    return emailPattern.test(email);
-  }
-
-  validatePassword(password: string): boolean {
-    const hasMinLength = password.length >= 8;
-    const hasUpperCase = /[A-Z]/.test(password);
-    const hasLowerCase = /[a-z]/.test(password);
-    const hasNumber = /\d/.test(password);
-    const hasSpecialChar = /[@$!%*?&]/.test(password);
-
-    return hasMinLength && hasUpperCase && hasLowerCase && hasNumber && hasSpecialChar;
   }
 }

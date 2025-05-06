@@ -1,10 +1,9 @@
 import { Component } from '@angular/core';
-import { Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule } from '@angular/forms';
 
 interface User {
-  username: string;
   email: string;
   password: string;
 }
@@ -12,28 +11,35 @@ interface User {
 @Component({
   selector: 'app-password-reset',
   standalone: true,
-  imports: [FormsModule, CommonModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './password-reset.component.html',
   styleUrls: ['./password-reset.component.css']
 })
 export class PasswordResetComponent {
-  email: string = '';
+  passwordResetForm: FormGroup;
+  recoveryMessage: string = '';
+  passwordVisible = false;
   recoveredPassword: string = '';
-  passwordVisible: boolean = false;
 
-  constructor(private router: Router) {}
+  constructor(private fb: FormBuilder) {
+    this.passwordResetForm = this.fb.group({
+      email: ['', [Validators.required, Validators.email]]
+    });
+  }
 
   onResetSubmit() {
     const storedUsers = localStorage.getItem('registeredUsers');
-    const users: User[] = storedUsers ? JSON.parse(storedUsers) : [];
+    const users: User[] = storedUsers ? JSON.parse(storedUsers) : []; // ✅ Evita `null`
 
-    const user = users.find((u: User) => u.email === this.email);
+    const userEmail = this.passwordResetForm.value.email as string; // ✅ Strict typing
+    const user = users.find((u: User) => u.email === userEmail);
 
     if (user) {
-      this.recoveredPassword = user.password; // Recuperar la contraseña registrada
+      this.recoveredPassword = user.password;
+      this.recoveryMessage = 'Contraseña recuperada correctamente.';
       this.passwordVisible = true;
     } else {
-      alert('No se encontró una cuenta con este correo.');
+      this.recoveryMessage = 'No se encontró una cuenta con este correo.';
     }
   }
 
@@ -43,6 +49,6 @@ export class PasswordResetComponent {
   }
 
   onBack() {
-    this.router.navigate(['/login']); // Redirige a la pantalla de inicio de sesión
+    window.history.back();
   }
 }

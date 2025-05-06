@@ -1,6 +1,6 @@
 <div class="container mt-5">
   <div class="card p-4">
-    <h2 class="text-center">Bienvenido, {{ userProfile?.username }}</h2>
+    <h2 class="text-center">Bienvenido, {{ userData.username }}</h2>
 
     <form [formGroup]="profileForm">
       <div class="form-group">
@@ -22,9 +22,8 @@
       </div>
     </form>
 
-    <!-- Botones -->
-    <button *ngIf="!isEditing" class="btn btn-warning w-100 mt-4" (click)="enableEditing()">Editar</button>
+    <button *ngIf="!isEditing" class="btn btn-warning w-100 mt-4" (click)="toggleEdit()">Editar</button>
     <button *ngIf="isEditing" class="btn btn-success w-100 mt-4" (click)="saveChanges()">Guardar</button>
-    <button class="btn btn-danger w-100 mt-4" (click)="onLogout()">Salir</button>
+    <button class="btn btn-danger w-100 mt-4" (click)="logout()">Salir</button>
   </div>
 </div>

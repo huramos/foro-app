@@ -1,40 +1,48 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-
-interface User {
-  username: string;
-  email: string;
-  password: string;
-}
+import * as crypto from 'crypto-js';
+import { ReactiveFormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent {
-  username: string = '';
-  password: string = '';
-  registeredUsers: User[] = [];
+  loginForm: FormGroup;
+  registeredUsers: any[] = [];
 
-  constructor(private router: Router) {
-    const storedUsers = localStorage.getItem('registeredUsers');
-    this.registeredUsers = storedUsers ? JSON.parse(storedUsers) : [];
+  constructor(private fb: FormBuilder, private router: Router) {
+    this.loginForm = this.fb.group({
+      username: ['', Validators.required],
+      password: ['', [Validators.required, Validators.minLength(6)]]
+    });
+  }
+
+  ngOnInit(): void {
+    this.registeredUsers = this.getStoredUsers();
+  }
+
+  private getStoredUsers(): any[] {
+    if (typeof window !== 'undefined' && localStorage) {
+      const storedUsers = localStorage.getItem('registeredUsers');
+      return storedUsers ? JSON.parse(storedUsers) : [];
+    }
+    return [];
   }
 
   onSubmit() {
-    const user = this.registeredUsers.find((u: User) => u.username === this.username && u.password === this.password);
+    const user = this.registeredUsers.find(u => u.username === this.loginForm.value.username);
 
-    if (user) {
-      console.log('Inicio de sesión exitoso:', user);
+    if (user && crypto.SHA256(this.loginForm.value.password).toString() === crypto.SHA256(user.password).toString()) {
       alert('¡Inicio de sesión exitoso!');
       this.router.navigate(['/home']);
     } else {
-      alert('Usuario o contraseña inválidos');
+      alert('Usuario o contraseña incorrectos.');
     }
   }
 
