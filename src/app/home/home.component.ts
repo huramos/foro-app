@@ -3,6 +3,8 @@ import { Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
+import { UserService } from '../services/user.service'; // ✅ Asegura que la ruta es correcta
+import { HttpErrorResponse } from '@angular/common/http'; // ✅ Manejo preciso de errores HTTP
 
 @Component({
   selector: 'app-home',
@@ -16,31 +18,54 @@ export class HomeComponent implements OnInit {
   profileForm: FormGroup;
   isEditing: boolean = false;
 
-  constructor(private fb: FormBuilder, private router: Router) {
-    // Inicialmente, se crean los controles. username se queda deshabilitado siempre; 
-    // email y gender se deshabilitan hasta que se active el modo edición.
+  constructor(private fb: FormBuilder, private router: Router, private userService: UserService) {
     this.profileForm = this.fb.group({
       username: [{ value: '', disabled: true }, Validators.required],
-      email: [{ value: '', disabled: true }, Validators.required],
+      email: [{ value: '', disabled: true }, [Validators.required, Validators.email]],
       gender: [{ value: '', disabled: true }, Validators.required]
     });
   }
 
   ngOnInit(): void {
-    const storedUsers = localStorage.getItem('registeredUsers');
-    const users = storedUsers ? JSON.parse(storedUsers) : [];
+    // 🔹 Obtiene el usuario actual desde `localStorage`
+    const storedUser = localStorage.getItem('currentUser');
 
-    if (users.length > 0) {
-      this.userData = users[users.length - 1];
-      this.profileForm.patchValue({
-        username: this.userData.username,
-        email: this.userData.email,
-        gender: this.userData.gender
-      });
+    if (!storedUser) {
+      console.error('No se encontró usuario en localStorage. Redirigiendo al login...');
+      this.router.navigate(['/login']); // ✅ Redirige al login si no hay usuario
+      return;
     }
-    // Aseguramos que los controles de email y gender se mantengan deshabilitados
-    this.profileForm.get('email')?.disable();
-    this.profileForm.get('gender')?.disable();
+
+    const currentUser = JSON.parse(storedUser);
+    const username = currentUser.username;
+
+    if (!username) {
+      console.error('Username indefinido. Redirigiendo al login...');
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    // 🔹 Obtiene el perfil del usuario desde el backend con el `username`
+    this.userService.getUserProfile(username).subscribe(
+      (response: any) => {
+        this.userData = response;
+
+        if (this.userData) {
+          this.profileForm.patchValue({
+            username: this.userData.username,
+            email: this.userData.email,
+            gender: this.userData.gender
+          });
+        }
+      },
+      (error: HttpErrorResponse) => { // ✅ Manejo preciso del error HTTP
+        console.error(`Error ${error.status}:`, error.message);
+        if (error.status === 404) {
+          console.warn('El usuario no existe en la base de datos.');
+          this.router.navigate(['/login']); // ✅ Redirige si el usuario no existe en la BD
+        }
+      }
+    );
   }
 
   toggleEdit(): void {
@@ -55,25 +80,36 @@ export class HomeComponent implements OnInit {
   }
 
   saveChanges(): void {
-    if (this.profileForm.valid && this.userData) {
-      const updatedProfile = this.profileForm.value;
-      // Nota: dado que algunos controles pueden estar deshabilitados,
-      // su valor no se incluye en form.value, por ello, para username usamos el valor existente.
-      this.userData = { ...this.userData, ...updatedProfile };
+    if (this.profileForm.valid) {
+      const updatedProfile = this.profileForm.getRawValue();
+      const username = this.userData.username; // ✅ Se obtiene el username del usuario logueado
 
-      const storedUsers = localStorage.getItem('registeredUsers');
-      const users = storedUsers ? JSON.parse(storedUsers) : [];
-      users[users.length - 1] = this.userData;
+      this.userService.updateUserProfile(username, updatedProfile).subscribe( // ✅ Se pasa `username` como parámetro
+        (response: any) => { // ✅ Se recibe la respuesta con los datos actualizados
+          this.userData = response;
 
-      localStorage.setItem('registeredUsers', JSON.stringify(users));
-      this.isEditing = false;
-      alert('¡Cambios guardados!');
+          // ✅ Guarda los datos actualizados en `localStorage`
+          localStorage.setItem('currentUser', JSON.stringify(this.userData));
+
+          alert('¡Cambios guardados!');
+          this.isEditing = false;
+        },
+        (error: HttpErrorResponse) => { // ✅ Corrección en el manejo de errores
+          console.error(`Error ${error.status}:`, error.message);
+        }
+      );
     } else {
       console.warn('Formulario inválido, no se guardaron cambios.');
     }
   }
 
   logout(): void {
+    localStorage.removeItem('currentUser'); // ✅ Se elimina usuario al cerrar sesión
     this.router.navigate(['/login']);
+  }
+
+  // 🔹 Nuevo método para navegar al foro
+  navigateToForum(): void {
+    this.router.navigate(['/forum']);
   }
 }

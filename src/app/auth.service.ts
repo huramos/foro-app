@@ -1,7 +1,7 @@
-// auth.service.ts
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 export interface LoginRequest {
   username: string;
@@ -9,22 +9,63 @@ export interface LoginRequest {
 }
 
 export interface LoginResponse {
-  token: string;
-  // Puedes agregar otros campos según lo que devuelva el backend
+  message: string;
+  role: string;
+  username: string;
+}
+
+export interface RegisterRequest {
+  username: string;
+  email: string;
+  password: string;
+  gender: string;
+}
+
+export interface RegisterResponse {
+  message: string;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  // Ajusta la URL base a la dirección y puerto en que se publica tu backend
   private baseUrl = 'http://localhost:8082/auth';
 
   constructor(private http: HttpClient) {}
 
+  // 🔹 Autenticación de usuario con manejo de errores
   login(credentials: LoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.baseUrl}/login`, credentials);
+    return this.http.post<LoginResponse>(`${this.baseUrl}/login`, credentials)
+      .pipe(
+        catchError(this.handleError)
+      );
   }
 
-  // Aquí podrías agregar métodos para register, recoverPassword, resetPassword, etc.
+  // 🔹 Registro de nuevo usuario con manejo de errores
+  register(userData: RegisterRequest): Observable<RegisterResponse> {
+    return this.http.post<RegisterResponse>(`${this.baseUrl}/register`, userData)
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
+  // 🔹 Manejo de errores global con tipado explícito
+  private handleError(error: HttpErrorResponse): Observable<never> {
+    let errorMessage = 'Ocurrió un error inesperado.';
+
+    switch (error.status) {
+      case 400:
+        errorMessage = 'Datos inválidos. Verifica el formulario.';
+        break;
+      case 409:
+        errorMessage = 'El usuario ya existe. Intenta con otro nombre.';
+        break;
+      case 500:
+        errorMessage = 'Error interno del servidor. Inténtalo más tarde.';
+        break;
+    }
+
+    console.error(`⚠️ Error HTTP (${error.status}): ${errorMessage}`);
+    return throwError(() => new Error(errorMessage));
+  }
 }

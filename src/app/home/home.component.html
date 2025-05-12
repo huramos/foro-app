@@ -2,7 +2,7 @@
   <div class="card p-4">
     <h2 class="text-center">Bienvenido, {{ userData.username }}</h2>
 
-    <form [formGroup]="profileForm">
+    <form [formGroup]="profileForm" autocomplete="off" novalidate>
       <div class="form-group">
         <label for="username">Usuario</label>
         <input id="username" class="form-control" formControlName="username" readonly>
@@ -22,8 +22,15 @@
       </div>
     </form>
 
-    <button *ngIf="!isEditing" class="btn btn-warning w-100 mt-4" (click)="toggleEdit()">Editar</button>
-    <button *ngIf="isEditing" class="btn btn-success w-100 mt-4" (click)="saveChanges()">Guardar</button>
-    <button class="btn btn-danger w-100 mt-4" (click)="logout()">Salir</button>
+    <div class="mt-4">
+      <button *ngIf="!isEditing" class="btn btn-warning w-100" (click)="toggleEdit()">Editar</button>
+      <button *ngIf="isEditing" class="btn btn-success w-100" (click)="saveChanges()">Guardar</button>
+      <button class="btn btn-danger w-100 mt-4" (click)="logout()">Salir</button>
+    </div>
+
+    <!-- 🔹 Botón para ir al foro -->
+    <div class="mt-4 text-center">
+      <button class="btn btn-primary" (click)="navigateToForum()">Ir al Foro</button>
+    </div>
   </div>
 </div>

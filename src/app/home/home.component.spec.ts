@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HomeComponent } from './home.component';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 describe('HomeComponent', () => {
   let component: HomeComponent;
@@ -9,7 +10,7 @@ describe('HomeComponent', () => {
   let routerMock: Router;
 
   beforeEach(() => {
-    // Establecemos datos en localStorage para las pruebas
+    // Configuramos localStorage con datos de usuario para pruebas
     localStorage.setItem(
       'registeredUsers',
       JSON.stringify([{ username: 'TestUser', email: 'test@example.com', gender: 'Masculino' }])
@@ -18,7 +19,7 @@ describe('HomeComponent', () => {
     routerMock = jasmine.createSpyObj('Router', ['navigate']);
 
     TestBed.configureTestingModule({
-      imports: [HomeComponent, ReactiveFormsModule],
+      imports: [HomeComponent, ReactiveFormsModule, HttpClientTestingModule],
       providers: [{ provide: Router, useValue: routerMock }]
     });
 
@@ -31,6 +32,13 @@ describe('HomeComponent', () => {
     expect(component.userData.username).toBe('TestUser');
   });
 
+  it('debería manejar la ausencia de usuario en localStorage sin errores', () => {
+    localStorage.removeItem('registeredUsers');
+    // Forzamos la recarga de datos
+    component.ngOnInit();
+    expect(component.userData).toBeUndefined();
+  });
+
   it('debería activar edición al hacer clic en Editar', () => {
     component.toggleEdit();
     fixture.detectChanges();
@@ -39,46 +47,41 @@ describe('HomeComponent', () => {
   });
 
   it('debería guardar los cambios en localStorage y desactivar edición', () => {
-    // Activamos el modo edición para que los controles se habiliten y se pueda guardar el cambio.
+    // Activamos modo edición
     component.toggleEdit();
     fixture.detectChanges();
 
     spyOn(localStorage, 'setItem');
 
-    // Establecemos valores válidos. Note que username se mantiene inalterable (está deshabilitado)
+    // Asumimos valores válidos (por ejemplo, username se mantiene inalterable si está deshabilitado)
     component.profileForm.setValue({
       username: 'TestUser',
       email: 'test@example.com',
       gender: 'Masculino'
     });
     fixture.detectChanges();
-
     component.saveChanges();
 
     expect(localStorage.setItem).toHaveBeenCalled();
     expect(component.isEditing).toBeFalse();
   });
 
-  it('debería redirigir al login cuando logout() es llamado', () => {
-    component.logout();
-    expect(routerMock.navigate).toHaveBeenCalledWith(['/login']);
-  });
-
   it('no debería guardar cambios si el formulario es inválido', () => {
-    // Activamos el modo edición en primer lugar
     component.toggleEdit();
     fixture.detectChanges();
 
     spyOn(localStorage, 'setItem');
-
-    // Establecemos valores inválidos
+    // Configuramos valores inválidos
     component.profileForm.setValue({ username: '', email: '', gender: '' });
     fixture.detectChanges();
-
     component.saveChanges();
 
     expect(localStorage.setItem).not.toHaveBeenCalled();
-    // En edición, si el formulario es inválido, se mantiene en modo edición
     expect(component.isEditing).toBeTrue();
+  });
+
+  it('debería redirigir al login cuando logout() es llamado', () => {
+    component.logout();
+    expect(routerMock.navigate).toHaveBeenCalledWith(['/login']);
   });
 });

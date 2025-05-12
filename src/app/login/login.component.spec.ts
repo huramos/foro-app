@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { LoginComponent } from './login.component';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 describe('LoginComponent', () => {
   let component: LoginComponent;
@@ -9,20 +10,19 @@ describe('LoginComponent', () => {
   let routerMock: any;
 
   beforeEach(() => {
-    // Configuramos localStorage con un usuario registrado para las pruebas.
     const testUser = { username: 'testuser', password: '123456' };
     localStorage.setItem('registeredUsers', JSON.stringify([testUser]));
 
     routerMock = jasmine.createSpyObj('Router', ['navigate']);
 
     TestBed.configureTestingModule({
-      imports: [LoginComponent, ReactiveFormsModule],
+      imports: [LoginComponent, ReactiveFormsModule, HttpClientTestingModule],
       providers: [{ provide: Router, useValue: routerMock }]
     });
 
     fixture = TestBed.createComponent(LoginComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges(); // Llama a ngOnInit y recupera los usuarios.
+    fixture.detectChanges();
   });
 
   it('debería crear el formulario con los controles requeridos', () => {
@@ -39,7 +39,7 @@ describe('LoginComponent', () => {
     expect(component.loginForm.valid).toBeTrue();
   });
 
-  it('debería navegar a /home y mostrar alerta de éxito al iniciar sesión con credenciales válidas', () => {
+  it('debería navegar a /home y mostrar alerta al iniciar sesión con credenciales válidas', () => {
     spyOn(window, 'alert');
     component.loginForm.setValue({ username: 'testuser', password: '123456' });
     component.onSubmit();
@@ -47,19 +47,19 @@ describe('LoginComponent', () => {
     expect(routerMock.navigate).toHaveBeenCalledWith(['/home']);
   });
 
-  it('debería mostrar alerta de error cuando las credenciales son incorrectas', () => {
+  it('debería mostrar alerta de error para credenciales incorrectas', () => {
     spyOn(window, 'alert');
     component.loginForm.setValue({ username: 'testuser', password: 'wrongpass' });
     component.onSubmit();
     expect(window.alert).toHaveBeenCalledWith('Usuario o contraseña incorrectos.');
   });
 
-  it('debería navegar a /register cuando se llama a onRegister()', () => {
+  it('debería navegar a /register al llamar onRegister()', () => {
     component.onRegister();
     expect(routerMock.navigate).toHaveBeenCalledWith(['/register']);
   });
 
-  it('debería navegar a /password-reset cuando se llama a onForgotPassword()', () => {
+  it('debería navegar a /password-reset al llamar onForgotPassword()', () => {
     component.onForgotPassword();
     expect(routerMock.navigate).toHaveBeenCalledWith(['/password-reset']);
   });

@@ -27,6 +27,6 @@ describe('AppComponent', () => {
   });
 
   it('debería tener el título correcto', () => {
-    expect(component.title).toBe('TestTitle'); // ✅ Se mockea correctamente el valor de `ActivatedRoute`
+    expect(component.title).toBe('TestTitle'); // Se mockea correctamente el valor de ActivatedRoute
   });
 });

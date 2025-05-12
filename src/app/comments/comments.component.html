@@ -1,0 +1,13 @@
+<div class="container mt-5">
+  <h2 class="text-center">Comentarios del Tópico</h2>
+
+  <div *ngFor="let comment of comments" class="card p-3 mb-3">
+    <p>{{ comment.content }}</p>
+    <small class="text-muted">Publicado por {{ comment.username }} el {{ comment.createdAt | date:'yyyy-MM-dd HH:mm' }}</small>
+  </div>
+
+  <!-- 🔹 Botón para regresar al foro -->
+  <div class="text-end mt-3">
+    <button class="btn btn-secondary" (click)="navigateToForum()">Volver al Foro</button>
+  </div>
+</div>

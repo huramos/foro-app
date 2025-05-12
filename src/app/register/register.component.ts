@@ -1,15 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
-
-interface User {
-  username: string;
-  email: string;
-  password: string;
-  gender: string;
-}
+import { AuthService } from '../auth.service';
 
 @Component({
   selector: 'app-register',
@@ -18,13 +12,14 @@ interface User {
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.css']
 })
-export class RegisterComponent {
+export class RegisterComponent implements OnInit {
   registerForm: FormGroup;
   registrationMessage: string = '';
+  errorMessage: string = '';
 
-  constructor(private fb: FormBuilder, private router: Router) {
+  constructor(private fb: FormBuilder, private router: Router, private authService: AuthService) {
     this.registerForm = this.fb.group({
-      username: ['', Validators.required],
+      username: ['', [Validators.required, Validators.minLength(4)]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [
         Validators.required,
@@ -35,37 +30,39 @@ export class RegisterComponent {
     });
   }
 
+  ngOnInit(): void {
+    this.clearForm();
+  }
+
+  private clearForm(): void {
+    this.registerForm.reset(); // ✅ Limpia el formulario
+    sessionStorage.clear(); // ✅ Borra cualquier dato previo almacenado en la sesión
+  }
+
   onSubmit() {
     if (this.registerForm.invalid) {
       this.registerForm.markAllAsTouched();
       return;
     }
 
-    const newUser: User = {
-      username: this.registerForm.value.username,
-      email: this.registerForm.value.email,
-      password: this.registerForm.value.password, // ✅ Se guarda sin cifrar para recuperación
-      gender: this.registerForm.value.gender
-    };
+    this.authService.register(this.registerForm.value).subscribe(
+      response => {
+        this.registrationMessage = '¡Registro exitoso! Redirigiendo a login...';
+        this.clearForm();
+        setTimeout(() => this.router.navigate(['/login']), 2000);
+      },
+      error => {
+        console.error('Error en el registro:', error);
 
-    this.storeUser(newUser);
-    this.registrationMessage = '¡Registro exitoso! Redirigiendo a login...';
-
-    setTimeout(() => this.router.navigate(['/login']), 2000);
-  }
-
-  private storeUser(user: User) {
-    const storedUsers = localStorage.getItem('registeredUsers');
-    const users: User[] = storedUsers ? JSON.parse(storedUsers) : [];
-
-    const existingUser = users.find(u => u.username === user.username);
-    if (existingUser) {
-      alert('El usuario ya está registrado. Prueba con otro nombre.');
-      return;
-    }
-
-    users.push(user);
-    localStorage.setItem('registeredUsers', JSON.stringify(users));
+        if (error.status === 409) {
+          this.errorMessage = 'El usuario ya existe. Prueba con otro nombre.';
+        } else if (error.status === 500) {
+          this.errorMessage = 'Error interno del servidor. Inténtalo más tarde.';
+        } else {
+          this.errorMessage = 'No se pudo completar el registro.';
+        }
+      }
+    );
   }
 
   onLogin() {

@@ -1,0 +1,13 @@
+<div class="container mt-5">
+  <h2 class="text-center">Agregar Comentario</h2>
+
+  <form (ngSubmit)="addComment()">
+    <div class="mb-3">
+      <label for="comment" class="form-label">Escribe tu comentario:</label>
+      <textarea id="comment" [(ngModel)]="commentContent" name="commentContent" class="form-control" rows="3"></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-success">Enviar Comentario</button>
+    <button type="button" class="btn btn-secondary" (click)="navigateToForum()">Cancelar</button>
+  </form>
+</div>

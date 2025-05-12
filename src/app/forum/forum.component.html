@@ -1,0 +1,46 @@
+<div class="container mt-5">
+  <h2 class="text-center">Foro de Discusión</h2>
+
+  <!-- Botón para regresar al Home -->
+  <div class="text-end mb-3">
+    <button class="btn btn-secondary" (click)="navigateToHome()">Volver al Home</button>
+  </div>
+
+  <!-- Sección de la tabla con los tópicos del foro -->
+  <div class="forum-topics">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Título</th>
+          <th>Descripción</th>
+          <th>Fecha de Creación</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let topic of topics">
+          <td>{{ topic.id }}</td>
+          <td>{{ topic.title }}</td>
+          <td>{{ topic.description }}</td>
+          <td>{{ topic.createdAt | date:'yyyy-MM-dd HH:mm' }}</td>
+          <td>
+            <!-- Botón para ver comentarios (visible para todos) -->
+            <button class="btn btn-primary" (click)="viewComments(topic.id)">
+              Ver Comentarios
+            </button>
+            <!-- Botón para agregar comentarios (visible para todos) -->
+            <button class="btn btn-success" (click)="addComment(topic.id)">
+              Agregar Comentario
+            </button>
+            <!-- Botón de edición (solo visible para admin) -->
+            <button *ngIf="isAdmin" class="btn btn-warning" (click)="editTopic(topic)">
+              Editar
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
